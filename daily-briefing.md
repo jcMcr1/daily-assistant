@@ -14,7 +14,7 @@ Everything below refers back to these. Edit here, once, rather than hunting thro
 - **Jira **: `your-instance.atlassian.net` — your Atlassian cloud. If you track Service Desk-style tickets as their own project, note the project key: `ProjectCode` used.
 - **Confluence & Service Desk*: `your-second-instance.atlassian.net`. If you track Service Desk-style tickets as their own project, note the project key: `ProjectCode` used.
   See Known Limitations for what this costs you in setup.
-- **Email noise sender topics**: (e.g. automated reports, vendor notifications, newsletters, DMARC, Amazon shopping notifications)
+- **Email noise sender topics**: (e.g. automated reports, vendor notifications, newsletters, Amazon shopping notifications)
 
 ## Output Rules
 
