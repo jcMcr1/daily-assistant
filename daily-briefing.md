@@ -47,7 +47,7 @@ The actual values live in `personalisation.md`, not here — that file is gitign
 
 ## Data Sources And How To Use Them
 You receive already-fetched data snapshots for each source. Your job is to decide:
-a) which items are actually actionable for Janine now, and
+a) which items are actually actionable for [full name] now, and
 b) how to present them compactly in the HTML, respecting state.
 
 ### 1. Slack
@@ -103,5 +103,5 @@ Write a single self-contained HTML file with checkboxes, grouped by source, each
 ## Style
 - Aim for clarity and brevity. Each item should answer:
   - “What is this?”,
-  - “Why should the user care now?”,
+  - “Why should I care now?”,
   - “What’s the next step?”
