@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Daily Briefing</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #7c5cff;
+    --warn-bg: #fff4e5;
+    --warn-border: #f5b969;
+    --done: #9ca3af;
+    --carried-bg: #eef2ff;
+    --carried-border: #c7d2fe;
+    --good-bg: #e9f9ee;
+    --good-border: #86dba0;
+    --flag-bg: #fffaeb;
+    --flag-border: #f2c94c;
+    --flag-star: #b8860b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a;
+      --card: #1f2024;
+      --text: #e8e8ec;
+      --muted: #9a9aa2;
+      --border: #2e2e34;
+      --accent: #a68cff;
+      --warn-bg: #3a2c12;
+      --warn-border: #7a5a1e;
+      --done: #6b6b73;
+      --carried-bg: #23213a;
+      --carried-border: #4338ca;
+      --good-bg: #123a1e;
+      --good-border: #2f7a4e;
+      --flag-bg: #3a3316;
+      --flag-border: #b8962e;
+      --flag-star: #e8bf4a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16161a; --card: #1f2024; --text: #e8e8ec; --muted: #9a9aa2;
+    --border: #2e2e34; --accent: #a68cff; --warn-bg: #3a2c12; --warn-border: #7a5a1e; --done: #6b6b73;
+    --carried-bg: #23213a; --carried-border: #4338ca; --good-bg: #123a1e; --good-border: #2f7a4e;
+    --flag-bg: #3a3316; --flag-border: #b8962e; --flag-star: #e8bf4a;
+  }
+  :root[data-theme="light"] {
+    --bg: #f7f7f5; --card: #ffffff; --text: #1f2328; --muted: #6b7280;
+    --border: #e5e7eb; --accent: #7c5cff; --warn-bg: #fff4e5; --warn-border: #f5b969; --done: #9ca3af;
+    --carried-bg: #eef2ff; --carried-border: #c7d2fe; --good-bg: #e9f9ee; --good-border: #86dba0;
+    --flag-bg: #fffaeb; --flag-border: #f2c94c; --flag-star: #b8860b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 32px 20px 80px; }
+  header h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  header p { margin: 0 0 16px; color: var(--muted); font-size: 0.95rem; }
+  .connect-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .connect-bar button {
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  .connect-bar button:disabled { opacity: 0.5; cursor: default; }
+  section { margin-bottom: 32px; }
+  section h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .count {
+    background: var(--border);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .item:last-child { border-bottom: none; }
+  .item input[type="checkbox"] {
+    margin-top: 3px;
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+  .item-body { flex: 1; min-width: 0; }
+  .item-title { font-size: 0.95rem; }
+  .item-title a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--accent); }
+  .item-title a:hover { color: var(--accent); }
+  .item-meta { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .item-prep {
+    font-size: 0.85rem;
+    margin-top: 6px;
+    padding: 8px 10px;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-radius: 8px;
+  }
+  .item.checked .item-title, .item.checked .item-meta { color: var(--done); text-decoration: line-through; }
+  .item.checked .item-prep { display: none; }
+  .item.flagged {
+    background: var(--flag-bg);
+    border-left: 3px solid var(--flag-border);
+    margin-left: -1px;
+    padding-left: 13px;
+  }
+  .flag-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 2px;
+    margin-top: 1px;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .flag-btn.flagged { color: var(--flag-star); }
+  .conflict-tag {
+    display: inline-block;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  .carried-tag {
+    display: inline-block;
+    background: var(--carried-bg);
+    border: 1px solid var(--carried-border);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  .done-tag {
+    display: inline-block;
+    background: var(--good-bg);
+    border: 1px solid var(--good-border);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  details.card summary {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--muted);
+    list-style: none;
+  }
+  details.card summary::-webkit-details-marker { display: none; }
+  details.card summary::before { content: "▸ "; }
+  details.card[open] summary::before { content: "▾ "; }
+  .note { font-size: 0.85rem; color: var(--muted); padding: 10px 16px; }
+  .callout {
+    font-size: 0.85rem;
+    color: var(--text);
+    padding: 10px 16px;
+    background: var(--carried-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  table td, table th { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  table th { color: var(--muted); font-weight: 600; }
+  table tr:last-child td { border-bottom: none; }
+  .badge { font-size: 0.72rem; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+  .empty { padding: 14px 16px; color: var(--muted); font-size: 0.9rem; }
+  .item-note-wrap { margin-top: 8px; }
+  .item-note-toggle {
+    font: inherit;
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+  }
+  .item-note-date { font-size: 0.72rem; color: var(--muted); margin-top: 2px; min-height: 1em; }
+  .item-note {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 4px;
+    padding: 6px 8px;
+    font: inherit;
+    font-size: 0.82rem;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    resize: vertical;
+  }
+  .item-note[data-empty="true"] { display: none; }
+  .save-status { font-size: 0.75rem; color: var(--muted); margin-top: 4px; min-height: 14px; }
+  .add-note-row { display: flex; gap: 8px; margin-top: 10px; }
+  .add-note-row input[type="text"] {
+    flex: 1;
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 8px 10px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .add-note-row input[type="text"]:disabled { opacity: 0.6; }
+  .add-note-row button {
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  .add-note-row button:disabled { opacity: 0.5; cursor: default; }
+  .mynote-text {
+    width: 100%;
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 2px 0;
+  }
+  .mynote-text:focus { border-bottom: 1px solid var(--accent); outline: none; }
+  .mynote-meta-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .mynote-source {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 1px 0;
+  }
+  .mynote-source:focus { border-bottom: 1px solid var(--accent); outline: none; color: var(--text); }
+  .mynote-date { font-size: 0.72rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+  .mynote-subnotes { margin-top: 6px; }
+  .mynote-subnote {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 5px 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+  .mynote-subnote:first-child { border-top: none; }
+  .mynote-subnote-text { color: var(--text); }
+  .mynote-subnote-date { font-size: 0.72rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+  .mynote-add-subnote-row { display: flex; gap: 6px; margin-top: 6px; }
+  .mynote-add-subnote-row input[type="text"] {
+    flex: 1;
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 5px 8px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .mynote-add-subnote-row button {
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Daily Briefing</h1>
+    <p>Ask your assistant to generate today's briefing per daily-briefing.md.</p>
+  </header>
+
+  <div class="connect-bar">
+    <button id="fs-connect" type="button">Connect notes file</button>
+    <span id="fs-status">Not connected — your checks and notes won't be saved until you connect daily-briefing-state.json.</span>
+  </div>
+
+  <!--
+    TEMPLATE — this file has no generated sections yet.
+
+    Each data source becomes a <section> with a stable data-section-key, e.g.:
+
+      <section data-section-key="slack-open-questions">
+        <h2>Slack — Open Questions <span class="count">2</span></h2>
+        <div class="card">
+          <div class="item">
+            <input type="checkbox" data-id="some-stable-id">
+            <div class="item-body">
+              <div class="item-title">Title, optionally an <a href="...">a href</a></div>
+              <div class="item-meta">Context · a <span class="conflict-tag">status tag</span></div>
+              <div class="item-prep">Optional extra detail/prep note.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    Every input[type=checkbox][data-id] automatically gets a flag button and a
+    "+ Add a note" toggle injected by the shared script below (refreshFlags(),
+    refreshItemNotes()) — never hand-write those controls. Checking a box removes
+    the item; an empty card shows "All cleared."
+
+    Section keys and per-item ids must stay stable across regenerations so
+    checks/flags/notes in daily-briefing-state.json keep tracking the right item.
+  -->
+
+  <section data-section-key="my-notes">
+    <h2>My Notes <span class="count" id="my-notes-count">0</span></h2>
+    <div class="card" id="my-notes-card"></div>
+    <div class="add-note-row">
+      <input type="text" id="my-notes-input" placeholder="Add a note..." disabled>
+      <button id="my-notes-add-btn" type="button" disabled>Add</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var STATE_FILENAME = 'daily-briefing-state.json';
+  var DB_NAME = 'daily-briefing-db';
+  var STORE_NAME = 'handles';
+  var HANDLE_KEY = 'state-file';
+
+  var fileHandle = null;
+  var state = { checked: {}, myNotes: [], flagged: {}, itemNotes: {} };
+  var wired = false;
+  var myNotesWired = false;
+
+  var connectBtn = document.getElementById('fs-connect');
+  var statusEl = document.getElementById('fs-status');
+
+  function setStatus(text) { statusEl.textContent = text; }
+
+  function idbOpen() {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = function () { req.result.createObjectStore(STORE_NAME); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function idbGet(key) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readonly');
+        var req = tx.objectStore(STORE_NAME).get(key);
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error); };
+      });
+    });
+  }
+
+  function idbSet(key, value) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(value, key);
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    });
+  }
+
+  function loadStateFromHandle(handle) {
+    return handle.getFile().then(function (file) { return file.text(); }).then(function (text) {
+      try {
+        var parsed = text ? JSON.parse(text) : {};
+        return { checked: parsed.checked || {}, myNotes: parsed.myNotes || [], flagged: parsed.flagged || {}, itemNotes: parsed.itemNotes || {} };
+      } catch (e) {
+        return { checked: {}, myNotes: [], flagged: {}, itemNotes: {} };
+      }
+    }).catch(function () {
+      return { checked: {}, myNotes: [], flagged: {}, itemNotes: {} };
+    });
+  }
+
+  var saveQueue = Promise.resolve();
+
+  function saveState() {
+    if (!fileHandle) return Promise.resolve();
+    // Serialize writes: createWritable() truncates the file immediately, before
+    // write()+close() land. Firing it once per checkbox with no queue let concurrent
+    // clicks race their own truncate/write/close cycles on the same file — the loser's
+    // truncate could land after the winner's write, leaving the file empty on disk.
+    // Chaining through one queue guarantees only one truncate+write+close is ever in
+    // flight, and each save serializes the state that's current when its turn comes up.
+    saveQueue = saveQueue.then(function () {
+      return fileHandle.createWritable().then(function (writable) {
+        return writable.write(JSON.stringify(state, null, 2)).then(function () { return writable.close(); });
+      }).then(function () {
+        setStatus('Saved ' + new Date().toLocaleTimeString());
+      }).catch(function (e) {
+        setStatus('Save failed (' + e.message + ') — try reconnecting.');
+      });
+    });
+    return saveQueue;
+  }
+
+  function checkEmpty(card) {
+    if (!card) return;
+    var remaining = card.querySelectorAll('.item').length;
+    if (remaining === 0 && !card.querySelector('.empty')) {
+      var p = document.createElement('p');
+      p.className = 'empty';
+      p.textContent = 'All cleared.';
+      card.appendChild(p);
+    }
+  }
+
+  function applyState() {
+    document.querySelectorAll('input[type="checkbox"][data-id]').forEach(function (box) {
+      var id = box.getAttribute('data-id');
+      if (state.checked[id]) {
+        var item = box.closest('.item');
+        var card = item ? item.closest('.card') : null;
+        if (item) item.remove();
+        checkEmpty(card);
+      }
+    });
+  }
+
+  function wireEvents() {
+    if (wired) return;
+    wired = true;
+
+    document.querySelectorAll('input[type="checkbox"][data-id]').forEach(function (box) {
+      box.addEventListener('change', function () {
+        if (!box.checked) return;
+        var id = box.getAttribute('data-id');
+        state.checked[id] = true;
+        saveState();
+        var item = box.closest('.item');
+        var card = item ? item.closest('.card') : null;
+        item.remove();
+        checkEmpty(card);
+      });
+    });
+  }
+
+  // Two distinct dates per note: dateAdded (the main note, stamped once at creation,
+  // never changes) and one date per sub-note (stamped when THAT sub-note is appended).
+  // Sub-notes are an append-only log, not a single overwritable field — each is its own
+  // dated entry, so "what did I learn about this and when" stays visible over time.
+  function renderMyNotes() {
+    var card = document.getElementById('my-notes-card');
+    var countEl = document.getElementById('my-notes-count');
+    if (!card) return;
+    card.innerHTML = '';
+    (state.myNotes || []).forEach(function (note) {
+      var item = document.createElement('div');
+      item.className = 'item';
+      item.setAttribute('data-mynote-item', '');
+
+      var box = document.createElement('input');
+      box.type = 'checkbox';
+      box.setAttribute('data-mynote-id', note.id);
+      box.addEventListener('change', function () {
+        if (!box.checked) return;
+        removeMyNote(note.id);
+      });
+
+      var body = document.createElement('div');
+      body.className = 'item-body';
+
+      var textInput = document.createElement('input');
+      textInput.type = 'text';
+      textInput.className = 'mynote-text';
+      textInput.value = note.text || '';
+      bindDebouncedField(textInput, note.id, 'text');
+
+      var metaRow = document.createElement('div');
+      metaRow.className = 'mynote-meta-row';
+
+      var sourceInput = document.createElement('input');
+      sourceInput.type = 'text';
+      sourceInput.className = 'mynote-source';
+      sourceInput.placeholder = 'Source...';
+      sourceInput.value = note.source || '';
+      bindDebouncedField(sourceInput, note.id, 'source');
+
+      var dateEl = document.createElement('div');
+      dateEl.className = 'mynote-date';
+      dateEl.textContent = note.dateAdded ? ('Added ' + note.dateAdded) : 'Added — unknown (predates dating)';
+
+      metaRow.appendChild(sourceInput);
+      metaRow.appendChild(dateEl);
+
+      var subList = document.createElement('div');
+      subList.className = 'mynote-subnotes';
+      (note.subNotes || []).forEach(function (sub) {
+        var subRow = document.createElement('div');
+        subRow.className = 'mynote-subnote';
+        var subText = document.createElement('div');
+        subText.className = 'mynote-subnote-text';
+        subText.textContent = sub.text;
+        var subDate = document.createElement('div');
+        subDate.className = 'mynote-subnote-date';
+        subDate.textContent = sub.date || '';
+        subRow.appendChild(subText);
+        subRow.appendChild(subDate);
+        subList.appendChild(subRow);
+      });
+
+      var addSubRow = document.createElement('div');
+      addSubRow.className = 'mynote-add-subnote-row';
+      var subInput = document.createElement('input');
+      subInput.type = 'text';
+      subInput.placeholder = 'Add a note...';
+      var subBtn = document.createElement('button');
+      subBtn.type = 'button';
+      subBtn.textContent = 'Add';
+      var submitSub = function () {
+        addSubNote(note.id, subInput.value);
+        subInput.value = '';
+      };
+      subBtn.addEventListener('click', submitSub);
+      subInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') submitSub(); });
+      addSubRow.appendChild(subInput);
+      addSubRow.appendChild(subBtn);
+
+      body.appendChild(textInput);
+      body.appendChild(metaRow);
+      body.appendChild(subList);
+      body.appendChild(addSubRow);
+
+      item.appendChild(box);
+      item.appendChild(body);
+      card.appendChild(item);
+    });
+    if (countEl) countEl.textContent = (state.myNotes || []).length;
+    checkEmpty(card);
+  }
+
+  function bindDebouncedField(el, noteId, field) {
+    var timer = null;
+    el.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () { updateMyNoteField(noteId, field, el.value); }, 700);
+    });
+  }
+
+  function updateMyNoteField(id, field, value) {
+    var note = (state.myNotes || []).find(function (n) { return n.id === id; });
+    if (!note) return;
+    note[field] = value;
+    saveState();
+  }
+
+  function addSubNote(noteId, text) {
+    text = (text || '').trim();
+    if (!text) return;
+    var note = (state.myNotes || []).find(function (n) { return n.id === noteId; });
+    if (!note) return;
+    if (!note.subNotes) note.subNotes = [];
+    note.subNotes.push({ text: text, date: todayStr() });
+    saveState();
+    renderMyNotes();
+  }
+
+  function removeMyNote(id) {
+    state.myNotes = (state.myNotes || []).filter(function (n) { return n.id !== id; });
+    saveState();
+    renderMyNotes();
+  }
+
+  function addMyNote(text) {
+    text = (text || '').trim();
+    if (!text) return;
+    if (!state.myNotes) state.myNotes = [];
+    state.myNotes.push({
+      id: 'mynote-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7),
+      text: text,
+      source: '',
+      dateAdded: todayStr(),
+      subNotes: []
+    });
+    saveState();
+    renderMyNotes();
+  }
+
+  function wireMyNotesUI() {
+    if (myNotesWired) return;
+    myNotesWired = true;
+    var input = document.getElementById('my-notes-input');
+    var btn = document.getElementById('my-notes-add-btn');
+    var hint = document.getElementById('my-notes-hint');
+    if (!input || !btn) return;
+    input.disabled = false;
+    btn.disabled = false;
+    if (hint) hint.textContent = '';
+    btn.addEventListener('click', function () {
+      addMyNote(input.value);
+      input.value = '';
+      input.focus();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        addMyNote(input.value);
+        input.value = '';
+      }
+    });
+  }
+
+  function toggleFlag(id) {
+    if (!state.flagged) state.flagged = {};
+    if (state.flagged[id]) {
+      delete state.flagged[id];
+    } else {
+      state.flagged[id] = true;
+    }
+    saveState();
+    refreshFlags();
+  }
+
+  // Injects a flag (☆/★) button next to every checkbox-bearing .item (works for both
+  // the static data-id items and the dynamically-rendered data-mynote-id items), then
+  // applies the .flagged style and re-sorts each card so flagged items float to the top.
+  // Idempotent and safe to call repeatedly — skips items that already have a button.
+  function refreshFlags() {
+    document.querySelectorAll('.item').forEach(function (item) {
+      var checkbox = item.querySelector('input[type="checkbox"]');
+      if (!checkbox) return;
+      var id = checkbox.getAttribute('data-id') || checkbox.getAttribute('data-mynote-id');
+      if (!id) return;
+      var btn = item.querySelector('.flag-btn');
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'flag-btn';
+        btn.setAttribute('aria-label', 'Flag for today');
+        checkbox.insertAdjacentElement('afterend', btn);
+        btn.addEventListener('click', function () { toggleFlag(id); });
+      }
+      var flagged = !!(state.flagged && state.flagged[id]);
+      item.classList.toggle('flagged', flagged);
+      btn.classList.toggle('flagged', flagged);
+      btn.textContent = flagged ? '★' : '☆';
+    });
+
+    document.querySelectorAll('.card').forEach(function (card) {
+      var items = Array.prototype.filter.call(card.children, function (el) {
+        return el.classList && el.classList.contains('item');
+      });
+      if (!items.length) return;
+      items.sort(function (a, b) {
+        var af = a.classList.contains('flagged') ? 0 : 1;
+        var bf = b.classList.contains('flagged') ? 0 : 1;
+        return af - bf; // stable: preserves original relative order within each group
+      });
+      items.forEach(function (item) { card.appendChild(item); });
+    });
+  }
+
+  function todayStr() {
+    var d = new Date();
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var dd = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + mm + '-' + dd;
+  }
+
+  function saveItemNote(id, text, dateEl) {
+    if (!state.itemNotes) state.itemNotes = {};
+    text = (text || '').trim();
+    if (!text) {
+      delete state.itemNotes[id];
+      if (dateEl) dateEl.textContent = '';
+    } else {
+      var existing = state.itemNotes[id];
+      var date = (existing && existing.date) ? existing.date : todayStr();
+      state.itemNotes[id] = { note: text, date: date };
+      if (dateEl) dateEl.textContent = 'Noted ' + date;
+    }
+    saveState();
+  }
+
+  function refreshItemNotes() {
+    // My Notes items skip this entirely — they have their own dedicated "Further info"
+    // field instead, so a second generic note toggle would just be a confusing duplicate.
+    document.querySelectorAll('.item').forEach(function (item) {
+      var checkbox = item.querySelector('input[type="checkbox"]');
+      if (!checkbox) return;
+      var id = checkbox.getAttribute('data-id');
+      if (!id) return;
+      var body = item.querySelector('.item-body');
+      if (!body) return;
+
+      var wrap = body.querySelector('.item-note-wrap');
+      if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.className = 'item-note-wrap';
+
+        var toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'item-note-toggle';
+        toggle.textContent = '+ Add a note';
+
+        var dateEl = document.createElement('div');
+        dateEl.className = 'item-note-date';
+
+        var ta = document.createElement('textarea');
+        ta.className = 'item-note';
+        ta.placeholder = 'Note on this item...';
+        ta.dataset.empty = 'true';
+
+        wrap.appendChild(toggle);
+        wrap.appendChild(dateEl);
+        wrap.appendChild(ta);
+        body.appendChild(wrap);
+
+        toggle.addEventListener('click', function () {
+          var showing = ta.dataset.empty === 'false';
+          ta.dataset.empty = showing ? 'true' : 'false';
+          toggle.textContent = showing ? '+ Add a note' : '– Hide note';
+          if (!showing) ta.focus();
+        });
+
+        var timer = null;
+        ta.addEventListener('input', function () {
+          clearTimeout(timer);
+          timer = setTimeout(function () { saveItemNote(id, ta.value, dateEl); }, 700);
+        });
+      }
+
+      var ta2 = wrap.querySelector('.item-note');
+      var toggle2 = wrap.querySelector('.item-note-toggle');
+      var dateEl2 = wrap.querySelector('.item-note-date');
+      var entry = state.itemNotes && state.itemNotes[id];
+      if (entry && entry.note) {
+        ta2.value = entry.note;
+        ta2.dataset.empty = 'false';
+        toggle2.textContent = '– Hide note';
+        dateEl2.textContent = 'Noted ' + entry.date;
+      } else {
+        dateEl2.textContent = '';
+      }
+    });
+  }
+
+  function onConnected(handle) {
+    fileHandle = handle;
+    loadStateFromHandle(handle).then(function (loaded) {
+      state = loaded;
+      applyState();
+      wireEvents();
+      renderMyNotes();
+      wireMyNotesUI();
+      refreshFlags();
+      refreshItemNotes();
+      setStatus('Connected — saving to ' + STATE_FILENAME);
+      connectBtn.textContent = 'Reconnect';
+    });
+  }
+
+  function connectFile() {
+    if (!('showOpenFilePicker' in window)) {
+      setStatus('This browser can\'t save to a file (needs Chrome or Edge). Checks/notes won\'t persist here.');
+      connectBtn.disabled = true;
+      return;
+    }
+    // showOpenFilePicker, not showSaveFilePicker: this is "open an existing file to read,
+    // then write back to later," not "save a new file." The save picker treats selecting
+    // an existing file as an overwrite/create intent and can clear it before we ever read
+    // the old content back — that's what was wiping ticked items on reconnect. The open
+    // picker just hands us a handle to the file as-is; write access is requested lazily
+    // by createWritable() the first time we actually save.
+    window.showOpenFilePicker({
+      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+      excludeAcceptAllOption: false,
+      multiple: false
+    }).then(function (handles) {
+      var handle = handles[0];
+      idbSet(HANDLE_KEY, handle);
+      onConnected(handle);
+    }).catch(function (e) {
+      if (e.name !== 'AbortError') setStatus('Could not connect: ' + e.message);
+    });
+  }
+
+  function tryAutoReconnect() {
+    if (!('showOpenFilePicker' in window)) {
+      setStatus('This browser can\'t save to a file (needs Chrome or Edge). Checks/notes won\'t persist here.');
+      connectBtn.disabled = true;
+      return;
+    }
+    idbGet(HANDLE_KEY).then(function (handle) {
+      if (!handle) return;
+      return handle.queryPermission({ mode: 'readwrite' }).then(function (perm) {
+        if (perm === 'granted') {
+          onConnected(handle);
+        } else {
+          setStatus('Click Connect to re-confirm access to your notes file.');
+        }
+      });
+    }).catch(function () {
+      // no prior connection, first run
+    });
+  }
+
+  connectBtn.addEventListener('click', connectFile);
+  refreshFlags();
+  refreshItemNotes();
+  tryAutoReconnect();
+})();
+</script>
+</body>
+</html>
