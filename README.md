@@ -11,6 +11,7 @@ A self-contained daily briefing that pulls from Slack, Jira/Confluence, email, a
 | `personalisation.md` | Your actual personal details (name, Slack channels/collaborators, Atlassian instance URLs, noise senders) that `daily-briefing.md` refers back to. Gitignored, so these details never end up in git history or get shared alongside the spec. Not in this repo — your assistant creates it on first run by asking you for each field. |
 | `daily-briefing.html` | The generated output. Overwritten each time you ask for a fresh briefing. Open this in your browser. Not in this repo — it's yours once you copy it from `template.html`. |
 | `daily-briefing-state.json` | Your checkboxes, flags, per-item notes, and "My Notes" list. The HTML reads/writes this directly — it's the source of truth, not the browser's memory. Also not in this repo — it's created the first time you click "Connect notes file." |
+| `daily-briefing-bugs.md` | A running log of gaps found in the sweep (missed messages, wrong queries, etc.) and how they were fixed. Not required, but useful once you start relying on this daily. |
 
 ## Requirements
 
