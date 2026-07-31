@@ -7,7 +7,8 @@ A self-contained daily briefing that pulls from Slack, Jira/Confluence, email, a
 | File | Purpose |
 |---|---|
 | `template.html` | A blank starting point — just the shell (styling, the connect-bar, the persistence script), no content. Copy this to `daily-briefing.html` before your first run. |
-| `daily-briefing.md` | The instructions your assistant reads before generating a briefing. This is the file to edit if you want to change *how* the briefing is built. |
+| `daily-briefing.md` | The instructions your assistant reads before generating a briefing. This is the file to edit if you want to change *how* the briefing is built. Contains no personal details — safe to share or commit. |
+| `personalisation.md` | Your actual personal details (name, Slack channels/collaborators, Atlassian instance URLs, noise senders) that `daily-briefing.md` refers back to. Gitignored, so these details never end up in git history or get shared alongside the spec. Not in this repo — your assistant creates it on first run by asking you for each field. |
 | `daily-briefing.html` | The generated output. Overwritten each time you ask for a fresh briefing. Open this in your browser. Not in this repo — it's yours once you copy it from `template.html`. |
 | `daily-briefing-state.json` | Your checkboxes, flags, per-item notes, and "My Notes" list. The HTML reads/writes this directly — it's the source of truth, not the browser's memory. Also not in this repo — it's created the first time you click "Connect notes file." |
 | `daily-briefing-bugs.md` | A running log of gaps found in the sweep (missed messages, wrong queries, etc.) and how they were fixed. Not required, but useful once you start relying on this daily. |
@@ -29,7 +30,7 @@ This runs on Claude's built-in connectors — no server or custom MCP setup, jus
 
 **Per data source**
 - **Slack** — connect it, authorize against your workspace. Gives tools like `slack_search_public_and_private` and `slack_read_channel` that Source 1 relies on.
-- **Jira/Confluence (Atlassian)** — connect it, authorize against your Atlassian site. If you use two separate Atlassian clouds (see Known Limitations), add the Atlassian connector twice — once per org — since each OAuth grant is scoped to a single cloud.
+- **Jira/Confluence (Atlassian)** — connect it, authorize against your Atlassian site. If you use two separate Atlassian clouds, add the Atlassian connector twice — once per org — since each OAuth grant is scoped to a single cloud.
 - **Gmail** — connect it, authorize against your Google account. Gives `search_threads` and similar for Source 4.
 - **Calendar** — usually the same Google connector as Gmail, or a separate one depending on your client version. Gives `list_events` for Source 5.
 
@@ -39,7 +40,7 @@ If a tool name in `daily-briefing.md` doesn't match what your connector actually
 
 ## Quick start
 
-Open `daily-briefing.md` and start at the **Personalization** section near the top — it collects the handful of values that are specific to you, in one place, instead of scattered through the instructions:
+Your personal details live in `personalisation.md`, not `daily-briefing.md` — kept separate and gitignored so the spec stays shareable without leaking your Slack channels, Jira instance, etc. The first time you ask for a briefing and `personalisation.md` doesn't exist yet, your assistant will ask you for each of these fields and create the file for you:
 
 - Your full name (used to spot "[Name] to do X" lines in meeting notes)
 - Your Slack floor list — the people whose DMs get checked explicitly rather than relying on search
@@ -47,11 +48,13 @@ Open `daily-briefing.md` and start at the **Personalization** section near the t
 - Your Jira/Confluence cloud — most people have one; if your org splits Service Desk/Confluence into a genuinely separate Atlassian org, there's a note on what that costs you in setup
 - Your email noise senders — whatever automated mail you want silently ignored
 
-Beyond that block, a few things to check per data source:
+You can also create or edit `personalisation.md` yourself at any time instead of going through the prompts.
+
+Beyond that block, a few things to check per data source in `daily-briefing.md`:
 
 - **Any source you don't use** (no Slack, no Jira, etc.) — delete that numbered section under Data Sources entirely, and drop its output from the HTML template rather than leaving an empty/broken card.
 - **Source 2's JQL** assumes a specific status field (`statusCategory`) and a placeholder project key — these vary by Jira instance, so check them against your own before relying on them.
-- **Known Limitations** at the bottom covers the two-Atlassian-cloud edge case and legacy connector transports — skip it if neither applies to you.
+- **Two Atlassian clouds**: if Confluence/Service Desk lives on a genuinely separate Atlassian org from your main Jira, you'll need a second Atlassian connector — each OAuth grant is scoped to a single cloud. Most people don't need this.
 
 The HTML/JS itself (checkbox persistence, flagging, per-item notes, My Notes) is generic and shouldn't need changes — it's driven entirely by the JSON state file and the `data-id`/`data-section-key` attributes the instructions tell your assistant to generate consistently.
 
